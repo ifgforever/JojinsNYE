@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inventory Admin — Jojin's Kitty Thrift Store</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🔐</text></svg>">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --card: #111827;
+            --card-border: rgba(255, 215, 0, .15);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --gold: #ffd700;
+            --gold-dark: #b8960f;
+            --good: #34d399;
+            --bad: #f87171;
+            --blue: #60a5fa;
+            --r: 14px;
+        }
+
+        body {
+            font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background: linear-gradient(180deg, #070a12, var(--bg));
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            color: var(--gold);
+            font-size: 26px;
+        }
+
+        h3 {
+            margin: 0 0 14px;
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .row { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--r);
+            padding: 18px;
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: #0f172a;
+            color: var(--text);
+            border: 1px solid rgba(255, 215, 0, .2);
+            border-radius: 10px;
+            padding: 11px 14px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, .15);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, .3);
+            background: rgba(255, 215, 0, .1);
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, .2);
+            transform: translateY(-1px);
+        }
+
+        .btn.primary {
+            background: rgba(52, 211, 153, .2);
+            border-color: rgba(52, 211, 153, .4);
+            color: var(--good);
+        }
+
+        .btn.primary:hover {
+            background: rgba(52, 211, 153, .3);
+            border-color: var(--good);
+        }
+
+        .btn.danger {
+            background: rgba(248, 113, 113, .15);
+            border-color: rgba(248, 113, 113, .3);
+            color: var(--bad);
+        }
+
+        .btn.danger:hover {
+            background: rgba(248, 113, 113, .25);
+            border-color: var(--bad);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .status {
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: rgba(52, 211, 153, .15);
+            border: 1px solid rgba(52, 211, 153, .3);
+            color: var(--good);
+        }
+
+        .status.error {
+            background: rgba(248, 113, 113, .15);
+            border: 1px solid rgba(248, 113, 113, .3);
+            color: var(--bad);
+        }
+
+        .status.info {
+            background: rgba(96, 165, 250, .15);
+            border: 1px solid rgba(96, 165, 250, .3);
+            color: var(--blue);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Auth overlay */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 14, 26, .98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--card);
+            border: 2px solid var(--gold);
+            border-radius: var(--r);
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 215, 0, .15);
+        }
+
+        .auth-box h2 {
+            margin: 0 0 8px;
+            color: var(--gold);
+            font-size: 24px;
+        }
+
+        .auth-box p {
+            color: var(--muted);
+            margin: 0 0 20px;
+            font-size: 14px;
+        }
+
+        .auth-box input {
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 16px;
+            letter-spacing: 2px;
+        }
+
+        .auth-error {
+            color: var(--bad);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .lock-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Import section */
+        .import-section {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border: 2px dashed rgba(255, 215, 0, .3);
+            border-radius: 10px;
+            background: rgba(255, 215, 0, .05);
+            color: var(--gold);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, .1);
+        }
+
+        .stats-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 215, 0, .1);
+            border: 1px solid rgba(255, 215, 0, .2);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        /* Scrollable table container */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        /* Row actions */
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .row-actions .btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Auth Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box">
+            <div class="lock-icon">🔐</div>
+            <h2>Admin Access</h2>
+            <p>Enter your admin key to manage inventory</p>
+            <div id="authError" class="auth-error hidden"></div>
+            <input type="password" id="authKey" placeholder="Enter admin key..." autocomplete="off" />
+            <button class="btn primary" id="authSubmit" style="width:100%;">🔓 Unlock</button>
+        </div>
+    </div>
+
+    <!-- Logout Button (shown when authenticated) -->
+    <button class="btn danger logout-btn hidden" id="logoutBtn">🚪 Logout</button>
+
+    <div class="wrap" id="mainContent" style="display:none;">
+        <h1>🐾 Inventory Admin</h1>
+        <p class="muted">Add, edit, import, or export products. Changes sync to Cloudflare KV automatically.</p>
+
+        <div id="statusMsg" class="status hidden"></div>
+
+        <div class="row">
+            <!-- Left Column: Add/Edit Form -->
+            <div class="card">
+                <h3>➕ Add / Update Product</h3>
+                
+                <div class="field-group">
+                    <label for="id">SKU / ID *</label>
+                    <input id="id" placeholder="SKU-1234" required />
+                </div>
+
+                <div class="field-group">
+                    <label for="name">Product Name</label>
+                    <input id="name" placeholder="Product name" />
+                </div>
+
+                <div class="field-group">
+                    <label for="price">Price ($)</label>
+                    <input id="price" type="number" step="0.01" placeholder="19.99" />
+                </div>
+
+                <div class="field-group">
+                    <label for="category">Category</label>
+                    <input id="category" placeholder="Tools" />
+                </div>
+
+                <div class="field-group">
+                    <label for="quantity">Quantity</label>
+                    <input id="quantity" type="number" step="1" placeholder="10" />
+                </div>
+
+                <div class="field-group">
+                    <label for="inStock">In Stock</label>
+                    <select id="inStock">
+                        <option value="true">Yes — In Stock</option>
+                        <option value="false">No — Out of Stock</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="image">Image Path</label>
+                    <input id="image" placeholder="images/product.jpg" />
+                </div>
+
+                <div class="field-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" placeholder="Short description"></textarea>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn primary" id="save">💾 Save Product</button>
+                    <button class="btn" id="clear">🗑️ Clear Form</button>
+                </div>
+
+                <!-- Import Section -->
+                <div class="import-section">
+                    <h3>📥 Import / Export</h3>
+                    
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label">
+                            📁 Drop JSON file here or click to browse
+                        </div>
+                        <input type="file" id="importFile" accept=".json,application/json" />
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn" id="download">⬇️ Export JSON</button>
+                        <button class="btn danger" id="clearAll">🗑️ Clear All Products</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Inventory List -->
+            <div class="card">
+                <h3>📦 Current Inventory</h3>
+                <div class="stats-badge" id="stats">0 products</div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Cat</th>
+                                <th>Qty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === CONFIGURATION ===
+        // In production, this should be verified server-side!
+        // This is a simple client-side check for basic protection.
+        // For real security, implement auth in your Cloudflare Worker.
+        const ADMIN_KEY_HASH = "jojin2025"; // Change this to your actual key
+
+        let PRODUCTS = [];
+        let isAuthenticated = false;
+
+        // === DOM ELEMENTS ===
+        const els = {
+            id: document.getElementById("id"),
+            name: document.getElementById("name"),
+            price: document.getElementById("price"),
+            category: document.getElementById("category"),
+            quantity: document.getElementById("quantity"),
+            inStock: document.getElementById("inStock"),
+            image: document.getElementById("image"),
+            description: document.getElementById("description"),
+            list: document.getElementById("list"),
+            stats: document.getElementById("stats"),
+            statusMsg: document.getElementById("statusMsg"),
+            authOverlay: document.getElementById("authOverlay"),
+            authKey: document.getElementById("authKey"),
+            authSubmit: document.getElementById("authSubmit"),
+            authError: document.getElementById("authError"),
+            mainContent: document.getElementById("mainContent"),
+            logoutBtn: document.getElementById("logoutBtn"),
+            importFile: document.getElementById("importFile"),
+        };
+
+        // === AUTH FUNCTIONS ===
+        function checkAuth() {
+            const storedKey = sessionStorage.getItem("adminKey");
+            if (storedKey === ADMIN_KEY_HASH) {
+                authenticate();
+            }
+        }
+
+        function authenticate() {
+            isAuthenticated = true;
+            els.authOverlay.classList.add("hidden");
+            els.mainContent.style.display = "block";
+            els.logoutBtn.classList.remove("hidden");
+            load();
+        }
+
+        function logout() {
+            sessionStorage.removeItem("adminKey");
+            isAuthenticated = false;
+            els.authOverlay.classList.remove("hidden");
+            els.mainContent.style.display = "none";
+            els.logoutBtn.classList.add("hidden");
+            els.authKey.value = "";
+            els.authError.classList.add("hidden");
+        }
+
+        function attemptLogin() {
+            const key = els.authKey.value.trim();
+            if (key === ADMIN_KEY_HASH) {
+                sessionStorage.setItem("adminKey", key);
+                authenticate();
+            } else {
+                els.authError.textContent = "❌ Invalid admin key. Please try again.";
+                els.authError.classList.remove("hidden");
+                els.authKey.value = "";
+                els.authKey.focus();
+            }
+        }
+
+        els.authSubmit.addEventListener("click", attemptLogin);
+        els.authKey.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") attemptLogin();
+        });
+        els.logoutBtn.addEventListener("click", logout);
+
+        // === STATUS MESSAGES ===
+        function showStatus(message, type = "info") {
+            els.statusMsg.textContent = message;
+            els.statusMsg.className = `status ${type}`;
+            setTimeout(() => {
+                els.statusMsg.className = "status hidden";
+            }, 4000);
+        }
+
+        // === DATA FUNCTIONS ===
+        async function load() {
+            try {
+                let res;
+                try {
+                    res = await fetch("/api/products", { cache: "no-store" });
+                    if (!res.ok) throw new Error("API not available");
+                } catch {
+                    res = await fetch("products.json", { cache: "no-store" });
+                }
+                PRODUCTS = await res.json();
+            } catch {
+                PRODUCTS = [];
+            }
+            render();
+        }
+
+        async function saveToCloud() {
+            try {
+                const res = await fetch("/api/products", {
+                    method: "PUT",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "X-Admin-Key": sessionStorage.getItem("adminKey") || ""
+                    },
+                    body: JSON.stringify(PRODUCTS)
+                });
+
+                if (res.ok) {
+                    showStatus("✓ Saved to cloud successfully!", "success");
+                    return true;
+                } else {
+                    throw new Error("Save failed");
+                }
+            } catch (error) {
+                showStatus("⚠️ Cloud save failed — download JSON as backup", "error");
+                return false;
+            }
+        }
+
+        function render() {
+            els.list.innerHTML = "";
+            els.stats.textContent = `${PRODUCTS.length} product${PRODUCTS.length === 1 ? "" : "s"}`;
+
+            for (const p of PRODUCTS) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${esc(p.id)}</td>
+                    <td>${esc(p.name)}</td>
+                    <td>$${Number(p.price || 0).toFixed(2)}</td>
+                    <td>${esc(p.category || "—")}</td>
+                    <td>${p.quantity ?? "—"}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="btn" data-edit="${esc(p.id)}">✏️</button>
+                            <button class="btn danger" data-del="${esc(p.id)}">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                els.list.appendChild(tr);
+            }
+
+            els.list.querySelectorAll("[data-edit]").forEach(b => 
+                b.addEventListener("click", () => edit(b.dataset.edit))
+            );
+            els.list.querySelectorAll("[data-del]").forEach(b => 
+                b.addEventListener("click", () => del(b.dataset.del))
+            );
+        }
+
+        function esc(s) {
+            return String(s ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function clearForm() {
+            els.id.value = "";
+            els.name.value = "";
+            els.price.value = "";
+            els.category.value = "";
+            els.quantity.value = "";
+            els.inStock.value = "true";
+            els.image.value = "";
+            els.description.value = "";
+        }
+
+        function edit(id) {
+            const p = PRODUCTS.find(x => x.id === id);
+            if (!p) return;
+            els.id.value = p.id || "";
+            els.name.value = p.name || "";
+            els.price.value = p.price ?? "";
+            els.category.value = p.category || "";
+            els.quantity.value = p.quantity ?? "";
+            els.inStock.value = String(!!p.inStock);
+            els.image.value = p.image || "";
+            els.description.value = p.description || "";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            showStatus(`Editing: ${p.name || p.id}`, "info");
+        }
+
+        async function del(id) {
+            const product = PRODUCTS.find(x => x.id === id);
+            if (!confirm(`Delete "${product?.name || id}"?\n\nThis cannot be undone.`)) return;
+            PRODUCTS = PRODUCTS.filter(x => x.id !== id);
+            render();
+            await saveToCloud();
+        }
+
+        async function save() {
+            const id = els.id.value.trim();
+            if (!id) {
+                showStatus("⚠️ SKU/ID is required!", "error");
+                els.id.focus();
+                return;
+            }
+
+            const p = {
+                id,
+                name: els.name.value.trim(),
+                price: Number(els.price.value || 0),
+                category: els.category.value.trim(),
+                quantity: Number(els.quantity.value || 0),
+                inStock: els.inStock.value === "true",
+                image: els.image.value.trim(),
+                description: els.description.value.trim()
+            };
+
+            const idx = PRODUCTS.findIndex(x => x.id === id);
+            if (idx >= 0) {
+                PRODUCTS[idx] = p;
+                showStatus(`Updated: ${p.name || p.id}`, "success");
+            } else {
+                PRODUCTS.unshift(p);
+                showStatus(`Added: ${p.name || p.id}`, "success");
+            }
+
+            render();
+            clearForm();
+            await saveToCloud();
+        }
+
+        function download() {
+            const blob = new Blob([JSON.stringify(PRODUCTS, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `products-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showStatus("✓ JSON downloaded!", "success");
+        }
+
+        // === IMPORT FUNCTIONALITY ===
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(imported)) {
+                        throw new Error("JSON must be an array of products");
+                    }
+
+                    // Validate structure
+                    const valid = imported.every(p => p.id && typeof p.id === "string");
+                    if (!valid) {
+                        throw new Error("Each product must have an 'id' field");
+                    }
+
+                    // Ask user how to handle import
+                    const action = confirm(
+                        `Found ${imported.length} products in file.\n\n` +
+                        `OK = Replace all existing products\n` +
+                        `Cancel = Merge (add new, update existing)`
+                    );
+
+                    if (action) {
+                        // Replace all
+                        PRODUCTS = imported;
+                        showStatus(`✓ Replaced with ${imported.length} products`, "success");
+                    } else {
+                        // Merge
+                        let added = 0, updated = 0;
+                        for (const p of imported) {
+                            const idx = PRODUCTS.findIndex(x => x.id === p.id);
+                            if (idx >= 0) {
+                                PRODUCTS[idx] = p;
+                                updated++;
+                            } else {
+                                PRODUCTS.push(p);
+                                added++;
+                            }
+                        }
+                        showStatus(`✓ Merged: ${added} added, ${updated} updated`, "success");
+                    }
+
+                    render();
+                    await saveToCloud();
+
+                } catch (err) {
+                    showStatus(`⚠️ Import failed: ${err.message}`, "error");
+                }
+
+                // Reset file input
+                els.importFile.value = "";
+            };
+
+            reader.onerror = () => {
+                showStatus("⚠️ Could not read file", "error");
+            };
+
+            reader.readAsText(file);
+        }
+
+        async function clearAllProducts() {
+            if (!confirm("⚠️ Delete ALL products?\n\nThis will remove everything from inventory.\nDownload a backup first if needed!")) return;
+            if (!confirm("Are you absolutely sure? This cannot be undone.")) return;
+            
+            PRODUCTS = [];
+            render();
+            await saveToCloud();
+            showStatus("All products cleared", "info");
+        }
+
+        // === EVENT LISTENERS ===
+        document.getElementById("save").addEventListener("click", save);
+        document.getElementById("clear").addEventListener("click", clearForm);
+        document.getElementById("download").addEventListener("click", download);
+        document.getElementById("clearAll").addEventListener("click", clearAllProducts);
+        els.importFile.addEventListener("change", handleImport);
+
+        // Drag and drop support
+        const fileLabel = document.querySelector(".file-input-label");
+        fileLabel.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            fileLabel.style.borderColor = "var(--gold)";
+            fileLabel.style.background = "rgba(255, 215, 0, .15)";
+        });
+        fileLabel.addEventListener("dragleave", () => {
+            fileLabel.style.borderColor = "";
+            fileLabel.style.background = "";
+        });
+        fileLabel.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileLabel.style.borderColor = "";
+            fileLabel.style.background = "";
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === "application/json") {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                els.importFile.files = dt.files;
+                els.importFile.dispatchEvent(new Event("change"));
+            } else {
+                showStatus("⚠️ Please drop a JSON file", "error");
+            }
+        });
+
+        // === INIT ===
+        checkAuth();
+    </script>
+</body>
+
+</html>
