@@ -7,7 +7,9 @@ export async function onRequest(context) {
     // Admin key for write operations (set this in Cloudflare dashboard as environment variable)
     // Go to: Pages > Your Project > Settings > Environment Variables
     // Add: ADMIN_KEY = "your-secret-key-here"
-    const ADMIN_KEY = env.ADMIN_KEY || "jojin2025"; // Fallback for development
+    // IMPORTANT: This fallback must match admin.html's ADMIN_KEY_HASH
+    // For production, set ADMIN_KEY in Cloudflare: Pages > Settings > Environment Variables
+    const ADMIN_KEY = env.ADMIN_KEY || "jojin2026";
 
     const KEY = "products";
 
